@@ -32,6 +32,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code to the container
 COPY . /app
+COPY credentials.json /app/credentials.json
 
 # Set executable permissions for ChromeDriver
 RUN chmod +x /usr/local/bin/chromedriver

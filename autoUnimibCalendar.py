@@ -35,30 +35,28 @@ def google_calendar_service():
     SCOPES = ['https://www.googleapis.com/auth/calendar']
 
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
+    # Verifica se esiste il file con le credenziali salvate
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
+    
+    # Se non ci sono credenziali valide o è necessario il login
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
+            # Questo blocco si assicura che flow venga sempre creato se necessario
             flow = InstalledAppFlow.from_client_secrets_file(
-            "credentials.json", SCOPES
-        )
-        creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
+                "credentials.json", SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        
+        # Salva le credenziali per usi futuri
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
     service = build('calendar', 'v3', credentials=creds)
-
-    
     
     return service
-
 
 # Function to create an event in the calendar
 def create_event(service, event_title , start_date_time, end_date_time):
@@ -221,10 +219,10 @@ def scrape_and_create_events():
             
      
             
-            # manage_event(service, title, event_start_datetime, event_end_datetime)
+            manage_event(service, title, event_start_datetime, event_end_datetime)
             
             #only if need to delete all the next today events
-            delete_event(service, title, event_start_datetime)
+            # delete_event(service, title, event_start_datetime)
       
             
             row_number += 1
