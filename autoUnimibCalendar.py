@@ -152,9 +152,9 @@ def manage_event(service, event_title, start_datetime, end_datetime):
         calendarId=calendarId,  # Replace with your actual calendar ID
         timeMin=time_min,
         timeMax=time_max,
-        # q = event_title,
+        q = event_title,
         singleEvents=True,
-        orderBy='startTime'
+        # orderBy='startTime'
     ).execute()
 
     events = events_result.get('items', [])
@@ -167,6 +167,7 @@ def manage_event(service, event_title, start_datetime, end_datetime):
         else:
             # If an event with the same title is found, return True (event exists)
             for event in events:
+                # print(f"Event found: {event['summary']}")
                 if event['summary'] != event_title:
                     if "annullato" not in event_title.lower():
                         # create event
