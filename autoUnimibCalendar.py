@@ -187,7 +187,7 @@ def scrape_and_create_events():
 
     service = google_calendar_service()
 
-    url = f"https://gestioneorari.didattica.unimib.it/PortaleStudentiUnimib/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+PERCORSO+COMUNE+-+T1&anno=2024&scuola=&corso=E3101Q&anno2%5B%5D=GGG+T1%7C2&visualizzazione_orario=cal&date=%27%7Btoday%7D%27&periodo_didattico=&_lang=it&list=1&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#"
+    url = f"https://gestioneorari.didattica.unimib.it/PortaleStudentiUnimib/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=&anno=2024&scuola=&corso=E3101Q&anno2%5B%5D=GGG+T1%7C2&visualizzazione_orario=cal&date=%27%7Btoday%7D%27&periodo_didattico=&_lang=it&list=1&week_grid_type=-1&ar_codes_=EC498992%7CEC498991%7CEC499147%7CEC499146%7CEC499192%7CEC498985%7CEC498997&ar_select_=true%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Cfalse%7Ctrue&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#"
     driver.get(url)
     time.sleep(20)  # Wait for the page to load
 
@@ -220,10 +220,10 @@ def scrape_and_create_events():
             
      
             
-            manage_event(service, title, event_start_datetime, event_end_datetime)
+            # manage_event(service, title, event_start_datetime, event_end_datetime)
             
             #only if need to delete all the next today events
-            # delete_event(service, title, event_start_datetime)
+            delete_event(service, title, event_start_datetime)
       
             
             row_number += 1
