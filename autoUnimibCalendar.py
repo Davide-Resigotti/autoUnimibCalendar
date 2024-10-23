@@ -159,7 +159,8 @@ def manage_event(service, event_title, start_datetime, end_datetime):
 
     events = events_result.get('items', [])
     
-    if events == []:
+    # Check if the date is Thursday (weekday() returns 3 for Thursday)
+    if events == [] and datetime.datetime.fromisoformat(start_datetime).weekday() == 3:
         if "annullato" not in event_title.lower():
             # create event
             print("Event not found, creating a new event...")
@@ -220,10 +221,10 @@ def scrape_and_create_events():
             
      
             
-            # manage_event(service, title, event_start_datetime, event_end_datetime)
+            manage_event(service, title, event_start_datetime, event_end_datetime)
             
             #only if need to delete all the next today events
-            delete_event(service, title, event_start_datetime)
+            # delete_event(service, title, event_start_datetime)
       
             
             row_number += 1
