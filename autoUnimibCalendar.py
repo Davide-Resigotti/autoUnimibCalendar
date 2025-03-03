@@ -86,6 +86,7 @@ def delete_event(service, event_title, start_datetime):
             calendarId=calendarId,  # Replace with your actual calendar ID
             timeMin=time_min,
             timeMax=time_max,
+            q = event_title, 
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -159,8 +160,7 @@ def manage_event(service, event_title, start_datetime, end_datetime):
 
     events = events_result.get('items', [])
     
-    # Check if the date is Thursday (weekday() returns 3 for Thursday)
-    if events == [] and datetime.datetime.fromisoformat(start_datetime).weekday() == 3:
+    if events == []:
         if "annullato" not in event_title.lower():
             # create event
             print("Event not found, creating a new event...")
@@ -188,7 +188,7 @@ def scrape_and_create_events():
 
     service = google_calendar_service()
 
-    url = f"https://gestioneorari.didattica.unimib.it/PortaleStudentiUnimib/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=&anno=2024&scuola=&corso=E3101Q&anno2%5B%5D=GGG+T1%7C2&visualizzazione_orario=cal&date=%27%7Btoday%7D%27&periodo_didattico=&_lang=it&list=1&week_grid_type=-1&ar_codes_=EC498992%7CEC498991%7CEC499147%7CEC499146%7CEC499192%7CEC498985%7CEC498997&ar_select_=true%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Cfalse%7Ctrue&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#"
+    url = f"https://gestioneorari.didattica.unimib.it/PortaleStudentiUnimib/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=&anno=2024&scuola=&corso=E3101Q&anno2%5B%5D=GGG+T2%7C2&visualizzazione_orario=cal&date=03-03-2025&periodo_didattico=&_lang=it&list=1&week_grid_type=-1&ar_codes_=%7CEC498980%7CEC498978%7CEC498979%7CEC498984%7CEC498983%7CEC499183%7CEC499196%7CEC499195%7CEC499730&ar_select_=%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Ctrue%7Cfalse&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#"
     driver.get(url)
     time.sleep(20)  # Wait for the page to load
 
@@ -200,7 +200,7 @@ def scrape_and_create_events():
             xpath = f"//*[@id='schedule']/div[2]/div[1]/div[{row_number}]/div[6]"
             title_element = driver.find_element(By.XPATH, xpath)
             title = title_element.text
-            # print(f"Found title: {title}")
+            print(f"Found title: {title}")
             
             # find date
             xpath = f"//*[@id='schedule']/div[2]/div[1]/div[{row_number}]/div[4]/a"
