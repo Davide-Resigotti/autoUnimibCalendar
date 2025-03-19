@@ -59,9 +59,10 @@ def google_calendar_service():
     return service
 
 # Function to create an event in the calendar
-def create_event(service, event_title , start_date_time, end_date_time):
+def create_event(service, event_title , start_date_time, end_date_time, location):
     event = {
         'summary': event_title,
+        'location': location,
         'start': {
             'dateTime': start_date_time,
             'timeZone': 'Europe/Rome',
@@ -86,7 +87,7 @@ def delete_event(service, event_title, start_datetime):
             calendarId=calendarId,  # Replace with your actual calendar ID
             timeMin=time_min,
             timeMax=time_max,
-            q = event_title, 
+            # q = event_title, 
             singleEvents=True,
             orderBy='startTime'
         ).execute()
@@ -143,7 +144,7 @@ def convert_to_iso8601(date_str, time_str):
 
 
 # Function to check if an event with the same title and start time already exists
-def manage_event(service, event_title, start_datetime, end_datetime):
+def manage_event(service, event_title, start_datetime, end_datetime, location):
     # Define the time window for searching existing events (a few minutes around the event start time)
     time_min = (datetime.datetime.fromisoformat(start_datetime) - datetime.timedelta(minutes=5)).isoformat() 
     time_max = (datetime.datetime.fromisoformat(start_datetime) + datetime.timedelta(minutes=5)).isoformat() 
@@ -170,7 +171,7 @@ def manage_event(service, event_title, start_datetime, end_datetime):
         if "annullato" not in event_title.lower():
             # create event
             print(f"Event not found, creating a new event... {event_title}")
-            create_event(service, event_title, start_datetime, end_datetime)
+            create_event(service, event_title, start_datetime, end_datetime, location)
         else:
             # If an event with the same title is found, return True (event exists)
             for event in events:
@@ -179,7 +180,7 @@ def manage_event(service, event_title, start_datetime, end_datetime):
                     if "annullato" not in event_title.lower():
                         # create event
                         print(f"creating a new event... + {event_title}")
-                        create_event(service, event_title, start_datetime, end_datetime)
+                        create_event(service, event_title, start_datetime, end_datetime, location)
                 elif 'annullato' in event['summary'].lower():
                     delete_event(service, event['summary'], event['start']['dateTime'])
            
@@ -211,6 +212,13 @@ def scrape_and_create_events():
             title = title_element.text
             # print(f"Found title: {title}")
             
+            
+            # find location
+            xpath = f"//*[@id='schedule']/div[2]/div[1]/div[{row_number}]/div[9]"   
+            location_element = driver.find_element(By.XPATH, xpath)
+            location = location_element.text
+            # print(f"Found class: {class_name}")
+            
             # find date
             xpath = f"//*[@id='schedule']/div[2]/div[1]/div[{row_number}]/div[4]/a"
             date_element = driver.find_element(By.XPATH, xpath)
@@ -230,7 +238,7 @@ def scrape_and_create_events():
             
      
             
-            manage_event(service, title, event_start_datetime, event_end_datetime)
+            manage_event(service, title, event_start_datetime, event_end_datetime, location)
             
             #only if need to delete all the next today events
             # delete_event(service, title, event_start_datetime)
