@@ -14,7 +14,6 @@ from dateutil import tz
 import chromedriver_autoinstaller
 
 calendarId = 'f600105dc5bba4859808b1f5b8a5f3b00a2c802cbbd999a10689147dd615fb11@group.calendar.google.com'
-
 today = datetime.datetime.now().strftime("%d-%m-%Y")
 
 
@@ -23,6 +22,7 @@ options = webdriver.ChromeOptions()
 options.add_argument('--headless')  # Run in headless mode
 options.add_argument('--no-sandbox')
 options.add_argument('--disable-dev-shm-usage')
+
 
 
 # Create a webdriver instance
@@ -73,7 +73,7 @@ def create_event(service, event_title , start_date_time, end_date_time, location
         },
     }
     event = service.events().insert(calendarId=calendarId, body=event).execute()
-    print(f"Event created: {event['htmlLink']}")
+    # print(f"Event created: {event['htmlLink']}")
     
 # Function to delete an event from the calendar
 def delete_event(service, event_title, start_datetime):
@@ -96,19 +96,18 @@ def delete_event(service, event_title, start_datetime):
         print("Error:", e)
         return
     
-    events = events_result.get('items', [])
+    event = events_result.get('items', [None])[0]  # Ottieni il primo evento o None se non esiste
 
-    # Check if the event exists and delete it
-    for event in events:
+    # Stampa l'evento trovato
+    if event:
+        print(f"Event found: {event}")
         if event['summary'].lower() == event_title.lower():
-            
-            event = service.events().delete(calendarId=calendarId, eventId=event['id']).execute()
-            
+            service.events().delete(calendarId=calendarId, eventId=event['id']).execute()
             print(f"Event '{event_title}' deleted successfully.")
-            return
-
-    # If no matching event is found
-    print(f"No event found with title {event_title} at the specified time.")
+        else:
+            print(f"No matching event found with title {event_title} at the specified time.")
+    else:
+        print(f"No event found with title {event_title} at the specified time.")
     
 # Function to convert the extracted date and time into ISO 8601 format with Europe/Rome timezone
 def convert_to_iso8601(date_str, time_str):
@@ -141,8 +140,6 @@ def convert_to_iso8601(date_str, time_str):
 
     return iso8601_start, iso8601_end
 
-
-
 # Function to check if an event with the same title and start time already exists
 def manage_event(service, event_title, start_datetime, end_datetime, location):
     # Define the time window for searching existing events (a few minutes around the event start time)
@@ -154,40 +151,28 @@ def manage_event(service, event_title, start_datetime, end_datetime, location):
         calendarId=calendarId,  # Replace with your actual calendar ID
         timeMin=time_min,
         timeMax=time_max,
-        # q = event_title,
+        # q = event_title,  # if i use event title does'nt find equal events
         singleEvents=True,
         orderBy='startTime'
     ).execute()
 
-    events = events_result.get('items', [])
+    event = next(iter(events_result.get('items', [])), None)
     
-    for event in events:
-        print(f"Event found: {event['summary']}")
-    
-
-    
-    
-    if events == [] :
+    if not event:
         if "annullato" not in event_title.lower():
-            # create event
+            # Create event if no matching events are found
             print(f"Event not found, creating a new event... {event_title}")
             create_event(service, event_title, start_datetime, end_datetime, location)
-        else:
-            # If an event with the same title is found, return True (event exists)
-            for event in events:
-                print(f"Event found: {event['summary']}")
-                if event['summary'].lower() != event_title.lower():
-                    if "annullato" not in event_title.lower():
-                        # create event
-                        print(f"creating a new event... + {event_title}")
-                        create_event(service, event_title, start_datetime, end_datetime, location)
-                elif 'annullato' in event['summary'].lower():
-                    delete_event(service, event['summary'], event['start']['dateTime'])
-           
-                
-                
-            
-
+    else:
+        print(f"Event found: {event['summary']}")
+        if event['summary'].lower() != event_title.lower():
+            if "annullato" not in event_title.lower():
+                # Create event if it doesn't match and is not marked as canceled
+                print(f"Creating a new event... {event_title}")
+                create_event(service, event_title, start_datetime, end_datetime, location)
+        elif 'annullato' in event['summary'].lower():
+            # Delete the event if it is marked as canceled
+            delete_event(service, event['summary'], event['start']['dateTime'])
 
 
 # Main function for scraping and creating events
@@ -202,9 +187,9 @@ def scrape_and_create_events():
 
     # Extract data with Selenium and XPath
     row_number = 2
-    while True:
-    # count = 0
-    # while count < 10:
+    # while True:
+    count = 0
+    while count < 10:
         try:
             # find title
             xpath = f"//*[@id='schedule']/div[2]/div[1]/div[{row_number}]/div[6]"
@@ -236,15 +221,13 @@ def scrape_and_create_events():
             # print(f"Event start datetime (ISO 8601): {event_start_datetime}")
             # print(f"Event end datetime (ISO 8601): {event_end_datetime}")
             
-     
-            
             manage_event(service, title, event_start_datetime, event_end_datetime, location)
             
             #only if need to delete all the next today events
             # delete_event(service, title, event_start_datetime)
       
             
-            # count += 1
+            count += 1
             row_number += 1
         except Exception as e:
             print("No more elements found or error:", e)
